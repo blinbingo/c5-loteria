@@ -9,7 +9,7 @@
 |---|---|---|
 | Diretório | `/opt/influcriator-web` | `/opt/c5` |
 | Serviço | `influcriator-web` | `c5-web` + `c5-worker` |
-| Porta app | `3001` | `3002` (só localhost nesta fase) |
+| Porta app | `3001` | `3005` (variável central `C5_WEB_PORT`; só localhost nesta fase) |
 | Postgres | (não usa) | cluster `16/c5`, porta `5433`, DB `c5`, role `c5_app`, **só localhost** |
 | nginx | server block do influcriator | **deferido** (sem domínio → sem block, sem reload) |
 | Deploy | pipeline do influcriator | pipeline própria do C5 |
@@ -18,7 +18,7 @@
 ## ⚠️ Importante nesta fase
 - **Sem domínio ainda → sem exposição pública.** O script **não** cria/ativa
   server block do nginx nem dá reload no nginx (evita qualquer efeito no site
-  atual). A app fica só em `localhost:3002`.
+  atual). A app fica só em `localhost:3005`.
 - **Os serviços NÃO são iniciados** no provisionamento (a aplicação do C5 ainda
   não foi construída — isso é Fase C). O script só **instala e habilita** as units.
 - O provisionamento **não abre nenhuma porta pública nova**.

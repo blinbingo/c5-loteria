@@ -66,7 +66,7 @@ Argon2id para senhas; papéis `player|admin|operator|viewer`; `/admin` protegido
 jogador pode ganhar 2FA depois sem mudança de arquitetura).
 
 ## Isolamento no VPS
-`/opt/c5` · `c5-web` (3002) + `c5-worker` · cluster Postgres próprio (5433, DB
+`/opt/c5` · `c5-web` (3005, var central `C5_WEB_PORT`) + `c5-worker` · cluster Postgres próprio (5433, DB
 `c5`, role `c5_app`) · nginx próprio · `.env` próprio · backups próprios · pipeline
 própria. Nada compartilhado com o influcriator. Detalhes em `infra/RUNBOOK.md`.
 
