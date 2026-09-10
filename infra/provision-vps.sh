@@ -155,6 +155,9 @@ ENV
   fi
   # template do nginx com a porta central já aplicada, guardado p/ uso FUTURO (sem ativar)
   sed "s/__PORT__/$C5_WEB_PORT/g" "$HERE/nginx-c5.conf.template" > "$C5_DIR/shared/nginx-c5.conf.template"
+  # infraestrutura de backup/restore do C5
+  cp "$HERE/backup.sh" "$HERE/restore.sh" "$C5_DIR/shared/"
+  chmod +x "$C5_DIR/shared/backup.sh" "$C5_DIR/shared/restore.sh"
 
   log "\n==> [5/6] systemd: instala e HABILITA ${C5_SERVICES[*]} (NÃO inicia ainda)"
   cp "$HERE/c5-web.service"    /etc/systemd/system/c5-web.service
