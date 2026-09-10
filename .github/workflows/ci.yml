@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: c5_app
+          POSTGRES_PASSWORD: c5_ci_pw
+          POSTGRES_DB: c5
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U c5_app"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgres://c5_app:c5_ci_pw@127.0.0.1:5432/c5
+      # superusuário do serviço para o teste de backup/restore criar o DB de verificação
+      ADMIN_URL: postgres://c5_app:c5_ci_pw@127.0.0.1:5432/c5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Migrations
+        run: npm run migrate
+      - name: Migrations status
+        run: npm run migrate:status
+      - name: Testes (ledger, idempotência, concorrência, reconciliação, rollback, RBAC, freeze)
+        run: npm test
+      - name: Backup + Restore (verificação)
+        run: bash scripts/verify-backup-restore.sh

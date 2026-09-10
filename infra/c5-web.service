@@ -1,0 +1,16 @@
+[Unit]
+Description=C5 - Loteria com Retencao (API web)
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/c5/current
+EnvironmentFile=/opt/c5/shared/.env
+# porta e banco vêm do .env; NADA compartilhado com influcriator-web (3001)
+ExecStart=/usr/bin/node /opt/c5/current/dist/server.js
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

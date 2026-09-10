@@ -1,0 +1,29 @@
+{
+  "name": "c5-loteria",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "C5 — Loteria com Retenção. Fundação de dados (Fase B): PostgreSQL, ledger de dupla entrada, motor de retenção isolado.",
+  "scripts": {
+    "migrate": "tsx db/migrate.ts up",
+    "migrate:status": "tsx db/migrate.ts status",
+    "seed:config": "tsx db/seed/0001_seed_engine_config.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "backup": "bash infra/backup.sh",
+    "restore": "bash infra/restore.sh"
+  },
+  "dependencies": {
+    "argon2": "^0.44.0",
+    "dotenv": "^17.2.3",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.7.0",
+    "@types/pg": "^8.15.6",
+    "tsx": "^4.19.1",
+    "typescript": "5.6.3",
+    "vitest": "^2.1.4"
+  }
+}

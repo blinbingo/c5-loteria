@@ -1,0 +1,17 @@
+[Unit]
+Description=C5 - Loteria com Retencao (worker/scheduler dos sorteios)
+After=network.target postgresql.service c5-web.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/c5/current
+EnvironmentFile=/opt/c5/shared/.env
+# Processo ÚNICO do scheduler (fecha/finaliza sorteios). Separado do web para
+# evitar finalização em duplicidade se houver mais de uma instância web.
+ExecStart=/usr/bin/node /opt/c5/current/dist/worker.js
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
