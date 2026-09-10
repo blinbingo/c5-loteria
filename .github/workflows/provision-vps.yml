@@ -1,0 +1,59 @@
+name: Provision VPS (Fase A)
+
+# Execução MANUAL apenas (nunca automática). Faz SSH no VPS e roda o script de
+# provisionamento da infra base do C5, isolado do influcriator.
+# Requer os secrets no repositório: SSH_HOST, SSH_USER, SSH_PRIVATE_KEY e, para
+# aplicar, C5_DB_PASSWORD. Sem esses secrets, o job apenas avisa e não faz nada.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "check (só inventário) ou apply (provisiona)"
+        type: choice
+        options: [check, apply]
+        default: check
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verifica secrets
+        id: check
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          if [ -z "$SSH_HOST" ] || [ -z "$SSH_USER" ] || [ -z "$SSH_PRIVATE_KEY" ]; then
+            echo "::notice::Secrets SSH ausentes — configure SSH_HOST, SSH_USER, SSH_PRIVATE_KEY (e C5_DB_PASSWORD para apply). Nada foi executado."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Setup SSH
+        if: steps.check.outputs.skip == 'false'
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_c5 && chmod 600 ~/.ssh/id_c5
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+      - name: Envia scripts de infra
+        if: steps.check.outputs.skip == 'false'
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          ssh -i ~/.ssh/id_c5 "$SSH_USER@$SSH_HOST" "mkdir -p /opt/c5-provision"
+          rsync -az -e "ssh -i ~/.ssh/id_c5" infra/ "$SSH_USER@$SSH_HOST:/opt/c5-provision/"
+      - name: Executa provisionamento (${{ inputs.mode }})
+        if: steps.check.outputs.skip == 'false'
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          C5_DB_PASSWORD: ${{ secrets.C5_DB_PASSWORD }}
+        run: |
+          ssh -i ~/.ssh/id_c5 "$SSH_USER@$SSH_HOST" \
+            "chmod +x /opt/c5-provision/provision-vps.sh && C5_DB_PASSWORD='$C5_DB_PASSWORD' bash /opt/c5-provision/provision-vps.sh --${{ inputs.mode }}"
